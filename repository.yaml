@@ -1,0 +1,11 @@
+# Home Assistant add-on repository manifest.
+#
+# Without this file the Supervisor rejects the whole repository — "Add repository"
+# reports no add-ons whatever the folders contain. It is the only thing that makes a
+# git URL usable in Settings → Add-ons → Add-on Store → ⋮ → Repositories.
+#
+# The Supervisor then treats every top-level directory holding a config.yaml as an
+# add-on. Here that is exactly one: ekey_ha_daemon/.
+name: "ekey module"
+url: "https://github.com/agrisvi/ekey_module_addon"
+maintainer: "agrisvi (https://github.com/agrisvi)"

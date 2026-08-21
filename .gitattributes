@@ -1,0 +1,4 @@
+# config.yaml is copied here verbatim from the private source repo and compared with
+# `sync-store.sh --check`. If git rewrote its line endings on checkout that comparison
+# would fail on every machine that clones this, for no real difference.
+* text=auto eol=lf

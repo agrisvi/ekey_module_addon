@@ -1,0 +1,101 @@
+name: "ekey module Daemon"
+description: "HTTP/SSE bridge between the ekey module fingerprint scanner and Home Assistant"
+version: "1.2.0"
+slug: "ekey_ha_daemon"
+url: "https://github.com/agrisvi/ekey_module_addon"
+init: false
+startup: "application"
+boot: "auto"
+homeassistant: "2023.1.0"
+
+arch:
+  - aarch64   # RPi 4/5 64-bit
+  - armv7     # RPi 3/4 32-bit
+  - amd64     # Supervised installs on a NUC / VM — without this they cannot install at all
+
+# ── Prebuilt image ────────────────────────────────────────────────────────────
+# The Supervisor PULLS this instead of building the Dockerfile. Two things follow:
+#
+#   1. No 15-30 minute gcc run on the user's Raspberry Pi.
+#   2. The plaintext src/closed/ scanner driver never reaches a user's machine. The
+#      image's runtime stage carries only the compiled .so and the binary, which is
+#      the whole point of the libekey_scanner.so split. A local build has the
+#      opposite property, so this is the safer distribution as well as the faster one.
+#
+# `{arch}` stays literal — the Supervisor substitutes the machine's own architecture,
+# so one line serves all three entries above.
+#
+# THIS FILE IS COPIED VERBATIM into the public add-on store repo (agrisvi/ekey_module_addon)
+# by ./sync-store.sh. That repo is what a Home Assistant adds as a repository; it carries
+# this config and nothing else — no Dockerfile, no src/ — because with `image:` set the
+# Supervisor never looks at them. Run `./sync-store.sh --check` before publishing: if the
+# two copies disagree, users get a config that does not match the image they pull.
+#
+# The tag the Supervisor asks for is `version:` above, not `latest`. Bump the version,
+# run .github/workflows/addon-image.yml for it, sync this file to the store repo, in that
+# order. A version with no published tag is an add-on that cannot install, with an error
+# that blames the registry rather than the mismatch.
+#
+# The GHCR package must be readable without credentials: the Supervisor holds none. Keep
+# the PACKAGE public (the source repo stays private) — it contains no secrets.
+image: "ghcr.io/agrisvi/{arch}-addon-ekey_ha_daemon"
+
+# KEEP host_network. It is load-bearing: Home Assistant Core itself runs with host
+# networking, which is the only reason the ekey-ha-controller integration's default
+# host=localhost / port=8080 works. Removing it would break every existing config
+# entry, which is a worse outcome than the alternatives it would tidy up.
+#
+# The cost is that the Supervisor cannot reach us on loopback. For a host-network
+# add-on it dials the hassio bridge gateway instead, so run.sh binds loopback AND
+# that gateway — and nothing else, so the API does not appear on the LAN.
+host_network: true
+
+# Auto-map host UART/serial devices into the container. The selected device
+# (see schema below) is also mapped in by the `device` option type.
+uart: true
+
+map:
+  - data:rw   # /data -> persistent add-on storage (replaces /etc/ekey)
+
+# Ingress: the Supervisor terminates Home Assistant's own authentication and
+# reverse-proxies to us, so the built-in admin page is reachable from the sidebar
+# without publishing a port and without a browser having to hold our API token.
+#
+# `ingress_port` is the port the Supervisor dials internally. With host_network it
+# is a HOST port, so it is simply the one the daemon already serves — no runtime
+# port discovery is needed.
+#
+# `ingress_stream` is REQUIRED here and easy to miss: /api/v1/events is a
+# Server-Sent Events stream, and without it the Supervisor buffers the response, so
+# the event stream never arrives and the log page silently stops updating.
+ingress: true
+ingress_port: 8080
+ingress_stream: true
+panel_icon: "mdi:fingerprint"
+panel_title: "ekey"
+panel_admin: true   # hides the sidebar entry from non-admins
+
+# No `ports:`. Publishing 8080 on the LAN is exactly what ingress exists to avoid,
+# and the API would then be reachable without Home Assistant's authentication in
+# front of it. Use `api_bind_ip` deliberately if that is really wanted.
+
+# Restart the add-on when the scanner link goes dead. The daemon's /api/v1/health
+# returns 503 when no scanner frame has arrived within its freshness window; the
+# Supervisor probes it and restarts the add-on, which re-opens the device.
+#
+# The probe is unauthenticated, which still works: /api/v1 keeps accepting requests
+# without a token for backwards compatibility. Only /app/v1 requires one.
+watchdog: "http://[HOST]:[PORT:8080]/api/v1/health"
+
+# No `options:` block: every setting below is optional. `serial_port` is left unset
+# so the device dropdown starts empty and the user must pick a device.
+schema:
+  # Dropdown of the host's serial/tty devices; the chosen one is auto-mapped in.
+  serial_port: "device(subsystem=tty)?"
+  # Optional: also expose the REST API on this address (e.g. 0.0.0.0 for all
+  # interfaces, or a specific host IP). Empty = loopback + the hassio bridge only.
+  # /api/v1 is UNAUTHENTICATED — only set this on a trusted network.
+  api_bind_ip: "str?"
+  # Write request bodies to the log. OFF by default: they carry user names and
+  # fingerprint template hex, and add-on logs end up in support bundles.
+  log_request_bodies: "bool?"

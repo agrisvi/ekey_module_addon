@@ -27,14 +27,21 @@ HTTP/SSE API plus its own management pages.
 
 ## What the sidebar page can do here
 
+**ekey** in the sidebar opens the **access log** — the last 100 access and action
+events, live. That is the landing page, not a tab. **Settings** in its header opens the
+admin page, and the tabs are there:
+
 | Tab | On the add-on |
 | --- | --- |
 | Users | Full — add users, enrol a finger with live progress, adopt a fingerprint enrolled on the device itself, delete |
 | Actions | LED, webhook, MQTT, KNX group write |
 | Automations | Event (`match_ok` / `match_nok` / `touch`) × scope (any finger, or one) → actions |
 | MQTT / KNX | Full. Settings apply immediately |
-| System | Scanner identity, the serial port as a read-only row, LED brightness, clock as a status line |
-| Event log | The last 100 access events, live |
+| System | Scanner identity, the serial port as a read-only row, LED brightness, a read-only clock, **Generate new API token**, and a control to clear the event ring |
+
+The page asks the daemon what it can do (`GET /app/v1/capabilities`) and hides the rest,
+so what you see is what this backend can actually run — no tab is offered that would
+fail when used.
 
 **Automations run here, not in Home Assistant.** That is the reason they live on the
 backend: a recognised finger still fires its actions while Home Assistant is restarting,
@@ -56,26 +63,45 @@ be read off the process line rather than inferred from the environment.
 ## The Home Assistant integration
 
 Install **[ekey module App](https://github.com/agrisvi/ekey_module_app)** through HACS,
-then add it with host `localhost`, port `8080`, and the API token from step 2. Those
-defaults are correct because this add-on runs with host networking on purpose.
+then **Settings → Devices & Services → Add Integration** and search for
+**ekey module App**.
 
-Without the token the integration can read the scanner but cannot manage users.
+It asks first how Home Assistant reaches the backend. Choose
+**Local — ekey-ha-daemon on this host (HTTP)**, and take the defaults: host
+`127.0.0.1`, port `8080`. Those are correct because this add-on runs with host
+networking on purpose. Then paste the API token from step 2.
+
+Without the token the integration can read the scanner but cannot manage users — the
+panel needs it.
+
+If you later use **Generate new API token** on the System tab, the old one stops
+working immediately and the integration raises a *"ekey token no longer accepted"*
+notice. Entering the new token there is the whole fix; the integration does not need
+to be removed and re-added.
 
 ## Storage
 
-Everything persists in `/data`, which the Supervisor backs up with the add-on:
+Everything persists in `/data`, which the Supervisor backs up with the add-on. The
+daemon itself writes to `/etc/ekey`; the container symlinks that whole directory to
+`/data/ekey` at startup, so both paths name the same files and either one works if you
+go looking from a shell.
 
 | Path | Contents |
 | --- | --- |
 | `/data/ekey/<device>.cfg` | The per-device pairing key. Losing it means re-pairing the scanner. |
 | `/data/ekey/app/token` | The API token, `0600`. |
 | `/data/ekey/app/*.json` | Users, actions, links, MQTT and KNX settings. |
-| `/data/ekey/app/events.ring` | The 100-slot access log. |
+| `/data/ekey/app/events.ring` | The 100-slot log of access and action events, oldest overwritten first. |
 
-A **factory reset** from the page clears the app documents, the event ring and the
-current device's pairing key, then mints a new token. It does not touch other devices'
-keys, and it does not touch `/data/options.json` — that is the Supervisor's, and wiping
-it would take `serial_port` with it and leave an add-on that will not restart.
+There is **no factory reset** on this backend — the page reports
+`factory_reset: false` and offers no such control. To start clean, use the individual
+controls instead: **Clear log…** on the System tab empties the event ring, users and
+fingerprints are deleted from the Users tab, and **Generate new API token** replaces
+the token.
+
+`/data/options.json` is the Supervisor's, not the daemon's. Nothing here writes to it,
+which is deliberate: wiping it would take `serial_port` with it and leave an add-on
+that will not restart.
 
 ## Troubleshooting
 

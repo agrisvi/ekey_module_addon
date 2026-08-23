@@ -67,6 +67,9 @@ correctly.
 - **F7 — every `arch` is one the Supervisor knows** (`aarch64`, `amd64`, `armhf`, `armv7`,
   `i386`). An unknown one is never matched, so the add-on is invisible rather than broken —
   the hardest kind of failure to diagnose from a bug report.
+  Listing a **deprecated** one (`armhf`, `armv7`, `i386`) is a warning, not a failure: it
+  still installs, but the Supervisor raises a `deprecated_arch_addon` repair notice for it
+  and Home Assistant is retiring 32-bit targets. Better heard from CI than from a user.
 - **F8 — `<image>:<version>` exists in the registry, for every listed arch.** The one that
   actually bites. The Supervisor pulls exactly that tag: publish a different one and the
   install fails on a manifest that does not exist. **Bump `version` in `config.yaml` only

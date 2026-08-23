@@ -1,16 +1,26 @@
 name: "ekey module Daemon"
 description: "HTTP/SSE bridge between the ekey module fingerprint scanner and Home Assistant"
-version: "1.2.3"
+version: "1.2.4"
 slug: "ekey_ha_daemon"
 url: "https://github.com/agrisvi/ekey_module_addon"
 init: false
-startup: "application"
+# "services", not "application": this add-on IS a service Home Assistant consumes. The
+# ekey integration connects to 127.0.0.1:8080 while Core is setting up its config
+# entries, so the daemon has to be listening first. At "application" the Supervisor
+# starts us AFTER Core, and every boot began with the integration failing its first
+# connection attempt and retrying.
+startup: "services"
 boot: "auto"
 homeassistant: "2023.1.0"
 
+# armv7 was here and is deliberately gone. The Supervisor now reports it through the
+# deprecated_arch_addon resolution check — a repair notice in the UI, and eventually a
+# config it will refuse. Home Assistant is retiring 32-bit ARM: HA OS ships 64-bit on
+# every Pi that can run it, so a 32-bit target reaches nobody this add-on can serve.
+# Dropping it also removes one of the two QEMU-emulated builds, which is most of the
+# image workflow's wall clock.
 arch:
-  - aarch64   # RPi 4/5 64-bit
-  - armv7     # RPi 3/4 32-bit
+  - aarch64   # RPi 3/4/5 64-bit — the only Pi target now
   - amd64     # Supervised installs on a NUC / VM — without this they cannot install at all
 
 # ── Prebuilt image ────────────────────────────────────────────────────────────

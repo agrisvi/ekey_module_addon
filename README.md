@@ -28,8 +28,9 @@ The add-on's own **Documentation** tab (the full version of
 page, storage and troubleshooting.
 
 Nothing is compiled on your machine. The Supervisor pulls a prebuilt image for your
-architecture — `aarch64`, `armv7` or `amd64` — so installing on a Raspberry Pi 3B+ is a
-download rather than the 15–30 minute gcc run a local build would be.
+architecture — `aarch64` or `amd64` — so installing on a Raspberry Pi is a download
+rather than the 15–30 minute gcc run a local build would be. A 64-bit OS is required;
+32-bit `armv7` is no longer built, following Home Assistant's deprecation of it.
 
 ## Why this repository holds no source
 

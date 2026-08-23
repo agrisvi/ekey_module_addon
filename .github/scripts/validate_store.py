@@ -38,6 +38,12 @@ REPO = Path(__file__).resolve().parents[2]
 # the add-on is invisible on every machine rather than broken on one.
 KNOWN_ARCHES = {"aarch64", "amd64", "armhf", "armv7", "i386"}
 
+# Still understood by the Supervisor, but it raises a `deprecated_arch_addon` repair
+# notice for them and will eventually refuse the config outright. A warning rather than a
+# failure: an add-on listing one of these works today. Caught here so CI says it before a
+# user's Supervisor does.
+DEPRECATED_ARCHES = {"armhf", "armv7", "i386"}
+
 errors: list[str] = []
 warnings: list[str] = []
 
@@ -129,6 +135,11 @@ def check_addon(config_path: Path) -> list[tuple[str, str]]:
              f"Supervisor does not know is invisible, not broken")
     elif arches:
         ok(f"arch: {arches}")
+    deprecated = [a for a in arches if a in DEPRECATED_ARCHES]
+    if deprecated:
+        warn(f"{directory.name}: deprecated arch {deprecated} — the Supervisor raises a "
+             f"deprecated_arch_addon repair notice for these, and Home Assistant is "
+             f"retiring 32-bit targets")
 
     # `image:` is optional for add-ons in general and MANDATORY here: this repository
     # contains no Dockerfile, so without it the Supervisor tries to build from sources that

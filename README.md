@@ -15,7 +15,7 @@ consumes, plus its own management pages in the Home Assistant sidebar.
    installation setting, not something the web page changes.
 5. **Start**, then read the **Log** tab. Note the `App API token` line — the
    integration needs it.
-6. **ekey** appears in the sidebar and opens the access log. **Settings** in its header
+6. **ekey daemon** appears in the sidebar and opens the access log. **Settings** in its header
    opens the admin page. No token is needed for either; ingress requests are already
    authenticated by Home Assistant.
 

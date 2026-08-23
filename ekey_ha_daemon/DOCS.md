@@ -14,7 +14,7 @@ HTTP/SSE API plus its own management pages.
      needs it. It is printed only when first minted; afterwards read it from
      `/data/ekey/app/token`.
    - `app_pages: serving 3 page(s)` — confirms the sidebar panel will work.
-3. Click **ekey** in the sidebar. No token needed there: Home Assistant has already
+3. Click **ekey daemon** in the sidebar. No token needed there: Home Assistant has already
    authenticated you and the Supervisor proxies the request.
 
 ## Options
@@ -27,7 +27,7 @@ HTTP/SSE API plus its own management pages.
 
 ## What the sidebar page can do here
 
-**ekey** in the sidebar opens the **access log** — the last 100 access and action
+**ekey daemon** in the sidebar opens the **access log** — the last 100 access and action
 events, live. That is the landing page, not a tab. **Settings** in its header opens the
 admin page, and the tabs are there:
 

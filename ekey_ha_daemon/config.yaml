@@ -1,6 +1,6 @@
 name: "ekey module Daemon"
 description: "HTTP/SSE bridge between the ekey module fingerprint scanner and Home Assistant"
-version: "1.2.4"
+version: "1.2.5"
 slug: "ekey_ha_daemon"
 url: "https://github.com/agrisvi/ekey_module_addon"
 init: false
@@ -99,8 +99,20 @@ map:
 ingress: true
 ingress_port: 8080
 ingress_stream: true
-panel_icon: "mdi:fingerprint"
-panel_title: "ekey"
+# "ekey daemon", not "ekey", and a different icon from the integration's.
+#
+# The ekey_ha_app integration registers its own sidebar panel with sidebar_title "ekey"
+# and icon mdi:fingerprint (const.py PANEL_TITLE / PANEL_ICON). On a machine running both
+# — which is the normal installation — that produced two sidebar entries with identical
+# labels and identical icons, going to completely different pages: this one to the access
+# log and the backend admin, the other to users and fingerprints.
+#
+# The add-on is the one that gives way. "ekey" should mean the same thing on every
+# install, and an ESP32 user has the integration's panel with no add-on at all. Naming
+# this one after the add-on ("ekey module Daemon") also makes the connection obvious to
+# someone who just installed it from the add-on store.
+panel_icon: "mdi:server-network"
+panel_title: "ekey daemon"
 panel_admin: true   # hides the sidebar entry from non-admins
 
 # No `ports:`. Publishing 8080 on the LAN is exactly what ingress exists to avoid,

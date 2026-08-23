@@ -54,6 +54,24 @@ host_network: true
 # (see schema below) is also mapped in by the `device` option type.
 uart: true
 
+# REQUIRED because serial_port is a by-id path. The device picker offers
+# /dev/serial/by-id/usb-…-if00-port0, but the Supervisor resolves that to the real
+# node and maps only /dev/ttyUSBn — the by-id symlink tree lives in the HOST's /dev
+# and is not part of the container's. Without udev the daemon is handed a path that
+# does not exist inside the container and cannot open the scanner.
+#
+# Verified directly: `ls /dev/serial/by-id/` inside the container returns ENOENT while
+# /dev/ttyUSB0 is present. run.sh recreates the link as a fallback, but this is the
+# setting that should make that fallback unnecessary. Other serial add-ons that accept
+# by-id paths (Zigbee2MQTT, ESPHome) set it for the same reason.
+#
+# The by-id name is not cosmetic: the daemon files its persistent pairing key under the
+# BASENAME of the -d path, so the by-id form gives one stable file per converter
+# (…_23180001-if00-port0.cfg) where a bare ttyUSBn can point at a different scanner
+# after a replug — and then the daemon loads the wrong key and, because it believes it
+# has one, does not re-pair.
+udev: true
+
 map:
   - data:rw   # /data -> persistent add-on storage (replaces /etc/ekey)
 

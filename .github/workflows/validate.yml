@@ -1,0 +1,68 @@
+# Validate the add-on store repository.
+#
+# This repository had no CI at all, which for a repository of this shape is not the safe
+# default it looks like. There is no code here to break — only `repository.yaml` and one
+# add-on's `config.yaml` — and that is exactly the problem: everything that can go wrong
+# goes wrong on a stranger's Home Assistant, at install time, with an error that names the
+# registry rather than the mistake.
+#
+# The checks live in .github/scripts/validate_store.py rather than in this file, so the same
+# thing that gates a push can be run by hand before making one:
+#
+#     python .github/scripts/validate_store.py
+#
+# WHAT IS FATAL: a missing or unparseable repository.yaml or config.yaml; a missing required
+# field; a `version` that YAML reads as a number instead of a string (1.20 becomes 1.2 and
+# the trailing zero is gone before anything downstream sees it); an `image` that is absent,
+# lowercase-violating, or has lost its literal `{arch}`; an arch the Supervisor does not
+# know; and — the one that actually bites — an `<image>:<version>` that does not exist in
+# the registry.
+#
+# WHAT IS ADVISORY: a slug that disagrees with its directory name, and a package that is not
+# anonymously readable. The second is deliberately not fatal because a private package and
+# an absent tag are indistinguishable from outside; the run says so rather than guessing.
+#
+# The `image:` key being mandatory here is specific to this repository: it carries no
+# Dockerfile and no sources, so without a prebuilt image the Supervisor tries to build from
+# sources that were deliberately never published.
+
+name: Validate store repository
+
+on:
+  push:
+    paths:
+      - "**/config.yaml"
+      - "repository.yaml"
+      - ".github/workflows/validate.yml"
+      - ".github/scripts/validate_store.py"
+  pull_request:
+    paths:
+      - "**/config.yaml"
+      - "repository.yaml"
+      - ".github/workflows/validate.yml"
+      - ".github/scripts/validate_store.py"
+  # Weekly, because this repository can stop working without a commit: the GHCR package can
+  # be deleted, or flipped to private, and either one makes every install fail while every
+  # file here still looks correct. Nothing in a diff would ever reveal that.
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: repository and published images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      # PyYAML and nothing else. A validator for a repository this small should not need a
+      # dependency tree of its own, and the registry query is plain urllib.
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Validate
+        run: python .github/scripts/validate_store.py

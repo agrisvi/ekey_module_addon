@@ -112,3 +112,42 @@ that will not restart.
 | Sidebar page loads but the event log never updates | Only possible on a modified config: `ingress_stream` must stay `true`, or the Supervisor buffers the SSE stream. |
 | `unauthorized` while installing | The container image's package visibility. It must be public; the Supervisor holds no registry credentials. |
 | Integration connects but shows no users | No API token given. Re-add the integration entry with the token from the log. |
+
+## Third-party software
+
+This add-on's container image contains software from the projects below in addition to
+the daemon itself. All of them are unmodified builds installed from the Debian archive
+and linked dynamically, with one exception noted in the table.
+
+| Component | Used under | Notes |
+| --- | --- | --- |
+| [cJSON](https://github.com/DaveGamble/cJSON) 1.7.19 | MIT | **The exception**: compiled directly into the daemon and the scanner library, not installed as a package. Unmodified upstream source. |
+| [GNU libmicrohttpd](https://www.gnu.org/software/libmicrohttpd/) | LGPL-2.1-or-later | The HTTP and SSE server. Dynamically linked, so you may replace it with your own build by substituting the shared library in the image — no relinking needed. |
+| [Mbed TLS](https://github.com/Mbed-TLS/mbedtls) | **Apache-2.0** | ECDH and AES-GCM on the scanner link, and the self-signed HTTPS certificate. Upstream offers Apache-2.0 **or** GPL-2.0-or-later; this distribution takes Apache-2.0, so no GPL obligation attaches on its account. |
+| [libcurl](https://curl.se/) | curl licence (MIT/X style) | The `webhook` action type. |
+| [Eclipse Mosquitto](https://github.com/eclipse-mosquitto/mosquitto) | **BSD-3-Clause** | The `mqtt` action type. Upstream offers EPL-2.0 **or** BSD-3-Clause; this distribution takes BSD-3-Clause, so the EPL's source-availability provisions do not apply. |
+| Home Assistant Debian base image | assorted | Debian Bookworm userland; each package carries its own copyright file. |
+
+Where the licence choice is shown in bold, that choice is part of the notice — a reader
+should not have to work out which of two sets of obligations applies.
+
+### Reading the full texts
+
+Everything is inside the image. From a terminal on the Home Assistant host:
+
+```bash
+docker exec addon_<slug>_ekey_ha_daemon cat /usr/local/share/ekey/THIRD_PARTY_LICENSES
+docker exec addon_<slug>_ekey_ha_daemon ls  /usr/local/share/ekey/licenses/
+```
+
+`THIRD_PARTY_LICENSES` is the notice itself. The `licenses/` directory holds one file per
+package, copied verbatim from that package's own Debian copyright file at image build
+time, plus `installed-versions.txt` recording the exact version each notice belongs to —
+a licence naming no version is guesswork the moment Debian ships a new one.
+
+The daemon itself is not covered by any of the above. Its open components are MIT; the
+scanner driver (`libekey_scanner.so`) is proprietary and not published in source form.
+
+If something ships in the image and is not named here, that is a defect in this list
+rather than a licence you have to guess at — please
+[open an issue](https://github.com/agrisvi/ekey_module_addon/issues).

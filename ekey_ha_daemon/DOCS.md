@@ -112,6 +112,33 @@ that will not restart.
 | Sidebar page loads but the event log never updates | Only possible on a modified config: `ingress_stream` must stay `true`, or the Supervisor buffers the SSE stream. |
 | `unauthorized` while installing | The container image's package visibility. It must be public; the Supervisor holds no registry credentials. |
 | Integration connects but shows no users | No API token given. Re-add the integration entry with the token from the log. |
+| An SPI RS485 HAT does not appear in the `serial_port` dropdown | The host is missing its device-tree overlay — see below. |
+
+### Using an SPI RS485 HAT instead of a USB converter
+
+An SC16IS75x HAT such as the Waveshare 2-CH RS485 HAT (SKU 17221) works with this add-on
+as-is, and switches transmit direction in hardware, so nothing needs configuring on this
+side. But the HAT needs a device-tree overlay on **Home Assistant OS itself**, which an
+add-on cannot install for you, and until that is loaded there is no device for the dropdown
+to offer.
+
+Add these two lines to `/mnt/boot/config.txt` — reachable over debug SSH on port 22222, or
+by reading the SD card on another computer — then reboot:
+
+```ini
+dtparam=spi=on
+dtoverlay=sc16is75x-spi,sc16is752,spi1-1cs,spi1-0,int_pin=24
+```
+
+Do **not** use the `dtoverlay=sc16is752-spi1,int_pin=24` line printed in Waveshare's own
+instructions. It was deprecated in Linux 6.12 and no longer ships, and current Home
+Assistant OS runs 6.12 or newer. On a Raspberry Pi 5, if the overlay still does not take
+effect, also add `overlay_prefix=slot-A/overlays/`. On the board, set both DIP switches to
+**Full-auto**, and close the 120 Ω jumper only if this is a physical end of the bus.
+
+After the reboot `/dev/ttySC0` appears in the Configuration dropdown like any other port.
+Note that this is editing a file Home Assistant OS does not officially expose; in practice
+custom lines survive OS updates.
 
 ## Third-party software
 

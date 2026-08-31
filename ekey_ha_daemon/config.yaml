@@ -1,6 +1,6 @@
 name: "ekey module Daemon"
 description: "HTTP/SSE bridge between the ekey module fingerprint scanner and Home Assistant"
-version: "1.2.6"
+version: "1.2.7"
 slug: "ekey_ha_daemon"
 url: "https://github.com/agrisvi/ekey_module_addon"
 init: false
@@ -117,7 +117,7 @@ panel_admin: true   # hides the sidebar entry from non-admins
 
 # No `ports:`. Publishing 8080 on the LAN is exactly what ingress exists to avoid,
 # and the API would then be reachable without Home Assistant's authentication in
-# front of it. Use `api_bind_ip` deliberately if that is really wanted.
+# front of it. Tick `allow_external` deliberately if that is really wanted.
 
 # Restart the add-on when the scanner link goes dead. The daemon's /api/v1/health
 # returns 503 when no scanner frame has arrived within its freshness window; the
@@ -132,9 +132,23 @@ watchdog: "http://[HOST]:[PORT:8080]/api/v1/health"
 schema:
   # Dropdown of the host's serial/tty devices; the chosen one is auto-mapped in.
   serial_port: "device(subsystem=tty)?"
-  # Optional: also expose the REST API on this address (e.g. 0.0.0.0 for all
-  # interfaces, or a specific host IP). Empty = loopback + the hassio bridge only.
-  # /api/v1 is UNAUTHENTICATED — only set this on a trusted network.
+  # Serve the REST API on every interface instead of just loopback + the hassio
+  # bridge, so other machines on the network can reach it. Off by default.
+  #
+  # A checkbox and not an address, because the correct address is a constant: 0.0.0.0.
+  # Binding the host's own LAN IP looks tidier and is a trap — that lease is dynamic,
+  # and when it moves bind() fails with EADDRNOTAVAIL, the daemon exits, and the
+  # restart policy turns a DHCP renewal into a restart loop that reads as a crash.
+  # 0.0.0.0 also covers the hassio gateway in the same listener, so ingress and the
+  # health watchdog keep their path; a single LAN address does not (see api_bind_ip).
+  #
+  # /api/v1 is UNAUTHENTICATED — only turn this on on a trusted network.
+  allow_external: "bool?"
+  # Advanced; normally leave empty. Binds ONE specific address instead, and wins over
+  # allow_external when both are set. Kept because it predates the checkbox and saved
+  # options may still carry it, and for a host that must not listen on every
+  # interface. It REPLACES the hassio-gateway bind, so any value other than 0.0.0.0
+  # costs you the sidebar panel and the watchdog; run.sh warns when it does.
   api_bind_ip: "str?"
   # Write request bodies to the log. OFF by default: they carry user names and
   # fingerprint template hex, and add-on logs end up in support bundles.

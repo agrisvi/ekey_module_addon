@@ -61,7 +61,8 @@ a matching image tag published before it lands, so an update is a pull, not a bu
 | Option | Default | What it does |
 | --- | --- | --- |
 | `serial_port` | *(empty)* | The RS485 device. Required — pick it from the dropdown. Internal (non-USB) ports are listed too. |
-| `api_bind_ip` | *(empty)* | Optionally also serve the REST API on this address. `/api/v1` is **unauthenticated**, so only set this on a trusted network. |
+| `allow_external` | `false` | Allow connections from other machines on your network. `/api/v1` is **unauthenticated**, so only tick this on a trusted network. |
+| `api_bind_ip` | *(empty)* | Advanced; leave empty. Serves the REST API on one specific address instead, at the cost of the sidebar panel and the health watchdog. |
 | `log_request_bodies` | `false` | Write request bodies to the add-on log. Off by default and worth leaving off: they carry people's names and fingerprint template hex, and add-on logs go into every support bundle. |
 
 ## Two things that are easy to get wrong

@@ -22,7 +22,8 @@ HTTP/SSE API plus its own management pages.
 | Option | Default | What it does |
 | --- | --- | --- |
 | `serial_port` | *(empty)* | The RS485 device, from a dropdown of what is currently attached. Internal (non-USB) ports appear too. To change it: reselect → **Save** → **Restart** (the device is read at startup). |
-| `api_bind_ip` | *(empty)* | Also serve the REST API on this address. Empty means loopback plus the Supervisor's bridge only. **`/api/v1` is unauthenticated** — set this only on a trusted network, and only deliberately. |
+| `allow_external` | `false` | Allow connections from other machines on your network. Off means loopback plus the Supervisor's bridge only. **`/api/v1` is unauthenticated** — tick this only on a trusted network, and only deliberately. |
+| `api_bind_ip` | *(empty)* | Advanced; leave empty. Serves the REST API on one specific address instead, and wins over `allow_external`. Any value other than `0.0.0.0` replaces the Supervisor's bridge listener, so the sidebar panel and the health watchdog stop working — the log warns when that happens. |
 | `log_request_bodies` | `false` | Write request bodies to the log. They carry user names and fingerprint template hex, and add-on logs are copied into support bundles. Turn it on while debugging, then off. |
 
 ## What the sidebar page can do here

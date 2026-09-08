@@ -1,6 +1,6 @@
 name: "ekey module Daemon"
 description: "HTTP/SSE bridge between the ekey module fingerprint scanner and Home Assistant"
-version: "1.2.7"
+version: "1.2.8"
 slug: "ekey_ha_daemon"
 url: "https://github.com/agrisvi/ekey_module_addon"
 init: false
@@ -125,7 +125,12 @@ panel_admin: true   # hides the sidebar entry from non-admins
 #
 # The probe is unauthenticated, which still works: /api/v1 keeps accepting requests
 # without a token for backwards compatibility. Only /app/v1 requires one.
-watchdog: "http://[HOST]:[PORT:8080]/api/v1/health"
+# The port is a literal, not `[PORT:8080]`. That placeholder is substituted from the
+# `ports:` mapping, and this add-on deliberately has none (see above) — so there was
+# nothing for the Supervisor to resolve it against. `host_network: true` fixes the
+# port at 8080 anyway, which is what makes the literal correct rather than merely a
+# workaround.
+watchdog: "http://[HOST]:8080/api/v1/health"
 
 # No `options:` block: every setting below is optional. `serial_port` is left unset
 # so the device dropdown starts empty and the user must pick a device.

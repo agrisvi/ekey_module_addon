@@ -1,0 +1,46 @@
+# Option labels and help text for the add-on's Configuration tab.
+#
+# Without this file the Supervisor shows the raw schema keys from config.yaml —
+# "api_bind_ip", "log_request_bodies" — and no explanation at all. That is a poor
+# deal for two of these options in particular, because both can expose personal
+# data or an unauthenticated API and neither says so under its own name.
+#
+# The keys under `configuration:` must match the `schema:` keys in config.yaml
+# exactly; a key here that has no schema entry is ignored silently, which is the
+# one failure mode to watch for when adding an option.
+#
+# This file is read by the SUPERVISOR from the add-on directory, not from inside
+# the container — so it has to reach the public store repo, and sync-store.sh
+# copies it there. It is not referenced by the Dockerfile for that reason.
+configuration:
+  serial_port:
+    name: Scanner serial port
+    description: >-
+      The RS485 device the ekey scanner is wired to, chosen from the ports currently
+      attached to this machine. Read once at startup: after changing it, press Save
+      and then Restart the add-on.
+  allow_external:
+    name: Allow connections from other machines
+    description: >-
+      Serve the REST API on every network interface instead of loopback and the
+      Supervisor bridge only. WARNING — /api/v1 needs no token: anyone who can reach
+      port 8080 on this host can enrol or delete fingerprints, drive the scanner, and
+      reboot or shut down the daemon. Turn this on only on a network you trust, and
+      firewall the port. Home Assistant itself does not need it; the sidebar page and
+      the integration both work with this off.
+  api_bind_ip:
+    name: Bind to one specific address (advanced)
+    description: >-
+      Leave empty. Serves the API on a single address instead, and takes precedence
+      over the checkbox above. Any value other than 0.0.0.0 replaces the Supervisor
+      bridge listener, which is what the sidebar panel and the health watchdog use —
+      so setting a LAN address here makes the "Open Web UI" button fail. Typing the
+      host's own DHCP address is also fragile: when the lease moves, the daemon cannot
+      bind it and the add-on restart-loops.
+  log_request_bodies:
+    name: Log request bodies
+    description: >-
+      Writes the body of every API request to the add-on log. Off by default because
+      those bodies carry people's names, their finger slots, and fingerprint template
+      data — and add-on logs are copied into every support bundle. Turn it on while
+      debugging a specific problem, then turn it off again.

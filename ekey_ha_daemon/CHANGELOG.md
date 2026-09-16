@@ -3,7 +3,7 @@
 The Supervisor shows this file when an update is available, so each entry answers
 one question: should I install this, and does anything change for me afterwards?
 
-## 1.2.9
+## Unreleased
 
 - **MQTT tab restored** in the admin page. Broker settings, and the "MQTT publish"
   action type, are available again after having been temporarily hidden.

@@ -144,12 +144,13 @@ custom lines survive OS updates.
 ## Third-party software
 
 This add-on's container image contains software from the projects below in addition to
-the daemon itself. All of them are unmodified builds installed from the Debian archive
-and linked dynamically, with one exception noted in the table.
+the daemon itself. Most are unmodified builds installed from the Debian archive and
+linked dynamically; the two that are not are marked as exceptions in the table.
 
 | Component | Used under | Notes |
 | --- | --- | --- |
-| [cJSON](https://github.com/DaveGamble/cJSON) 1.7.19 | MIT | **The exception**: compiled directly into the daemon and the scanner library, not installed as a package. Unmodified upstream source. |
+| [cJSON](https://github.com/DaveGamble/cJSON) 1.7.19 | MIT | **Exception**: compiled directly into the daemon and the scanner library, not installed as a package. Unmodified upstream source. |
+| [LX/UI](https://github.com/dativa-lv/lx-ui) 2.3.2 | MIT | **Exception**: not a package either — it is part of the pages themselves. The sidebar and management pages carry its design tokens and its CSS reset inside their own `<style>` block, so the notice travels inside every copy of a page. CSS only: no Vue, no components, no npm dependency. |
 | [GNU libmicrohttpd](https://www.gnu.org/software/libmicrohttpd/) | LGPL-2.1-or-later | The HTTP and SSE server. Dynamically linked, so you may replace it with your own build by substituting the shared library in the image — no relinking needed. |
 | [Mbed TLS](https://github.com/Mbed-TLS/mbedtls) | **Apache-2.0** | ECDH and AES-GCM on the scanner link, and the self-signed HTTPS certificate. Upstream offers Apache-2.0 **or** GPL-2.0-or-later; this distribution takes Apache-2.0, so no GPL obligation attaches on its account. |
 | [libcurl](https://curl.se/) | curl licence (MIT/X style) | The `webhook` action type. |

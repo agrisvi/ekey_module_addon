@@ -3,6 +3,68 @@
 The Supervisor shows this file when an update is available, so each entry answers
 one question: should I install this, and does anything change for me afterwards?
 
+## 1.2.9
+
+- **MQTT tab restored** in the admin page. Broker settings, and the "MQTT publish"
+  action type, are available again after having been temporarily hidden.
+- **Serial port selection fixed** for a real USB adapter. The saved selection is now
+  also matched against its `/dev/serial/by-id` alias, not just the raw device node —
+  before, the "Change the serial port" dropdown could pre-select correctly on one host
+  and come up completely blank on another, depending on whether udev happened to give
+  that port a by-id alias (it does for essentially every USB-to-RS485 converter).
+- **KNX can now go straight onto the bus, without a KNX IP Router.** The KNX tab has a
+  new **Connection method**: keep *Over the network* (KNXnet/IP routing, what you have
+  today) or choose *Directly attached module* for a Weinzierl KNX BAOS module wired to the
+  Raspberry Pi's own UART — a kBerry 838, for instance.
+  Two things are better that way. There is no router to buy or configure, and a write is
+  **acknowledged**: the module confirms the bus took the telegram, so a ✓ in the event log
+  finally means what it looks like it means. A routed write cannot report that at any
+  price.
+  One thing is different, and it is the reason this is a deliberate choice rather than
+  something automatic: an attached module addresses **datapoint numbers**, not group
+  addresses, because ETS owns the mapping from a datapoint to the group address it writes
+  to. So actions name "datapoint 5" instead of "1/2/3", and the action editor switches
+  which field it shows to match. Nothing is lost switching back and forth — both are
+  stored — and existing routed setups are untouched: the default is unchanged, and a
+  settings document saved before this release still means exactly what it did.
+  If the module says nothing, the two usual causes are the Raspberry Pi's serial console
+  still owning the UART, and a missing `dtoverlay=disable-bt` on a Pi 3/4. Both are named
+  in the log rather than left to guesswork.
+- **KNX can now go straight onto the bus, without a KNX IP Router.** The KNX tab has a
+  new **Connection method**: keep *Over the network* (KNXnet/IP routing, what you have
+  today) or choose *Directly attached module* for a Weinzierl KNX BAOS module wired to the
+  Raspberry Pi's own UART — a kBerry 838, for instance.
+  Two things are better that way. There is no router to buy or configure, and a write is
+  **acknowledged**: the module confirms the bus took the telegram, so a ✓ in the event log
+  finally means what it looks like it means. A routed write cannot report that at any
+  price.
+  One thing is different, and it is the reason this is a deliberate choice rather than
+  something automatic: an attached module addresses **datapoint numbers**, not group
+  addresses, because ETS owns the mapping from a datapoint to the group address it writes
+  to. So actions name "datapoint 5" instead of "1/2/3", and the action editor switches
+  which field it shows to match. Nothing is lost switching back and forth — both are
+  stored — and existing routed setups are untouched: the default is unchanged, and a
+  settings document saved before this release still means exactly what it did.
+  If the module says nothing, the two usual causes are the Raspberry Pi's serial console
+  still owning the UART, and a missing `dtoverlay=disable-bt` on a Pi 3/4. Both are named
+  in the log rather than left to guesswork.
+- **The pages have been restyled, and they are no longer always dark.** The access log and
+  the admin panel now follow the LX/UI design system: square corners, flat cards separated
+  by a hairline rather than a shadow, a deeper blue, and text fields drawn as a single
+  underline instead of a full box.
+  The change you will notice first is the colour. A new control in the page header — the
+  half-filled circle beside *Settings* — opens a small panel with four choices.
+  **Automatic** follows your device's own light/dark setting and is the new default, so on
+  a machine set to light these pages will now be light. **Light** and **Dark** pin one
+  regardless. If you preferred how this looked before, pick *Dark* once; the choice is
+  remembered in that browser.
+  The fourth, **Contrast**, is a black-and-yellow high-contrast theme for anyone who needs
+  one. It is only ever chosen deliberately — nothing infers it for you.
+  One limitation worth knowing: a page shown through Home Assistant's sidebar cannot read
+  which theme you have set *in Home Assistant*, because ingress does not expose it. So if
+  your HA theme and your device setting disagree, set the page's own theme once and it will
+  stay put.
+
 ## 1.2.8
 
 - **Option labels and help text.** The Configuration tab used to show the raw schema

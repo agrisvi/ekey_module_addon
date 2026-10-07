@@ -61,6 +61,31 @@ else already owns each job:
 The daemon is started with `--no-serial-select --no-gpio`, so which product this is can
 be read off the process line rather than inferred from the environment.
 
+### MQTT with the Mosquitto broker add-on
+
+On the **MQTT** tab:
+
+| Field | Plain | Encrypted (TLS) |
+| --- | --- | --- |
+| Broker URI | `mqtt://<HA address>:1883` | `mqtts://<HA address>:8883` |
+| Username / Password | a login from the Mosquitto add-on's `logins` | same |
+| Skip TLS certificate verification | no effect | tick it for a self-signed certificate or when connecting by IP |
+
+For TLS, the Mosquitto add-on needs `certfile` and `keyfile` set and both files present in
+Home Assistant's `/ssl` folder. Its log then shows a listen socket on port **8883**.
+
+In the Mosquitto add-on, `password_pre_hashed: true` means the password is already a PBKDF2
+hash. With a plain-text password, set it to `false`, or every login is refused as *"not
+authorised"* and the add-on logs `invalid PBKDF2 hash supplied`.
+
+The action's *"Topic"* is published exactly as written. The only payload tokens are
+`{username}` `{result}` `{apid}` `{finger}` `{ts}`, and anything else in braces is sent
+literally. For a JSON payload, quote the text tokens and leave the two numbers bare:
+
+```json
+{"user":"{username}","result":"{result}","apid":"{apid}","finger":{finger},"ts":{ts}}
+```
+
 ## The Home Assistant integration
 
 Install **[ekey module App](https://github.com/agrisvi/ekey_module_app)** through HACS,
@@ -150,7 +175,7 @@ linked dynamically; the two that are not are marked as exceptions in the table.
 | Component | Used under | Notes |
 | --- | --- | --- |
 | [cJSON](https://github.com/DaveGamble/cJSON) 1.7.19 | MIT | **Exception**: compiled directly into the daemon and the scanner library, not installed as a package. Unmodified upstream source. |
-| [LX/UI](https://github.com/dativa-lv/lx-ui) 2.3.2 | MIT | **Exception**: not a package either — it is part of the pages themselves. The sidebar and management pages carry its design tokens and its CSS reset inside their own `<style>` block, so the notice travels inside every copy of a page. CSS only: no Vue, no components, no npm dependency. |
+| [LX/UI](https://github.com/dativa-lv/lx-ui) 2.3.2 | MIT | **Exception**: not a package either — it is part of the pages themselves. The sidebar and management pages carry its design tokens and its CSS reset inside their own `<style>` block, so the notice travels inside every copy of a page. CSS only: no Vue, no components, no npm dependency. © 2024-present SIA "ZZ Dats". |
 | [GNU libmicrohttpd](https://www.gnu.org/software/libmicrohttpd/) | LGPL-2.1-or-later | The HTTP and SSE server. Dynamically linked, so you may replace it with your own build by substituting the shared library in the image — no relinking needed. |
 | [Mbed TLS](https://github.com/Mbed-TLS/mbedtls) | **Apache-2.0** | ECDH and AES-GCM on the scanner link, and the self-signed HTTPS certificate. Upstream offers Apache-2.0 **or** GPL-2.0-or-later; this distribution takes Apache-2.0, so no GPL obligation attaches on its account. |
 | [libcurl](https://curl.se/) | curl licence (MIT/X style) | The `webhook` action type. |

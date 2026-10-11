@@ -3,6 +3,33 @@
 The Supervisor shows this file when an update is available, so each entry answers
 one question: should I install this, and does anything change for me afterwards?
 
+## 1.3.2
+
+- **Home Assistant picks up the API token by itself.** The add-on now hands its token to
+  the ekey integration through the Supervisor, so there is nothing to copy out of the
+  log. With no ekey entry yet, Home Assistant offers **"ekey add-on found"** under
+  Settings → Devices & services — press Submit. An entry you already have takes the
+  token over and reloads, and so does it whenever you regenerate the token on the
+  System tab. Needs ekey integration 1.3.2 or later.
+- **The add-on's page now opens inside the ekey panel.** Choose the add-on's scanner in
+  the ekey sidebar panel's "Scanner or storage" list. The separate **"ekey daemon"**
+  sidebar entry is no longer needed: switch it off under this add-on's Info tab →
+  "Show in sidebar" if you like.
+- **New option: "Require the API token everywhere"** (`require_token`, off by default).
+  On, the scanner API (`/api/v1`) asks for the API token too, the way an ekey ESP32
+  device does — recommended together with "Allow connections from other machines".
+  The ekey panel, the integration and the health watchdog keep working. Takes effect
+  after a restart of the add-on.
+- **Pages open faster.** The access log and management pages are sent compressed (about
+  a third of their size), and a browser that already has the current page gets a short
+  "unchanged" answer instead of the whole page again. The fingerprint list and the
+  scanner details are kept for a short while, so opening the Settings page no longer
+  waits for the scanner each time; any change to the scanner refreshes them at once.
+- The **System tab** loads the device settings before the scanner details, instead of
+  both at once.
+- The **Documentation** tab's third-party table now names zlib, which compresses the
+  pages.
+
 ## 1.3.1
 
 - **Live updates on the access-log and admin pages are steadier.** The pages now check

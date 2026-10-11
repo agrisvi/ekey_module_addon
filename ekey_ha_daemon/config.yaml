@@ -1,6 +1,6 @@
 name: "ekey module Daemon"
 description: "HTTP/SSE bridge between the ekey module fingerprint scanner and Home Assistant"
-version: "1.3.1"
+version: "1.3.2"
 slug: "ekey_ha_daemon"
 url: "https://github.com/agrisvi/ekey_module_addon"
 init: false
@@ -99,6 +99,13 @@ map:
 ingress: true
 ingress_port: 8080
 ingress_stream: true
+
+# Lets run.sh announce {host, port, token} to the ekey_ha_app integration through the
+# Supervisor, so the API token never has to be copied out of the log by hand — and a
+# token regenerated on the System tab reaches the integration by itself. The name is
+# the integration's DOMAIN: that is what Home Assistant starts the config flow for.
+discovery:
+  - ekey_ha_app
 # "ekey daemon", not "ekey", and a different icon from the integration's.
 #
 # The ekey_ha_app integration registers its own sidebar panel with sidebar_title "ekey"
@@ -158,3 +165,8 @@ schema:
   # Write request bodies to the log. OFF by default: they carry user names and
   # fingerprint template hex, and add-on logs end up in support bundles.
   log_request_bodies: "bool?"
+  # Require the API token on /api/ too, as the ESP32 does (--require-token). Off by
+  # default so an existing integration entry without a token keeps working; the
+  # integration gets the token through add-on discovery either way. Ingress (the
+  # sidebar page) and /api/v1/health stay open, so the watchdog keeps working.
+  require_token: "bool?"

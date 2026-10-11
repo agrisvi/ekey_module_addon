@@ -10,12 +10,16 @@ HTTP/SSE API plus its own management pages.
    Required. The add-on exits with *"No serial device selected"* without it, on purpose:
    the fix belongs in this tab, not in a page the add-on serves.
 2. **Start**, then open the **Log** tab. Two lines matter:
-   - `App API token (for the Home Assistant integration): …` — copy it, the integration
-     needs it. It is printed only when first minted; afterwards read it from
-     `/data/ekey/app/token`.
-   - `app_pages: serving 3 page(s)` — confirms the sidebar panel will work.
-3. Click **ekey daemon** in the sidebar. No token needed there: Home Assistant has already
-   authenticated you and the Supervisor proxies the request.
+   - `API token handed to Home Assistant (add-on discovery)` — the ekey integration
+     receives the token by itself; see [below](#the-home-assistant-integration). The
+     token is also printed once, as `App API token (for the Home Assistant integration):
+     …`, and stays readable in `/data/ekey/app/token`.
+   - `app_pages: serving 3 page(s)` — confirms the add-on's pages will work.
+3. Open the pages: in the **ekey** sidebar panel (from the integration), choose this
+   add-on's scanner in **Scanner or storage** — or use **Open Web UI** on this add-on's
+   Info tab. No token needed either way: Home Assistant has already authenticated you and
+   the Supervisor proxies the request. The add-on's own **ekey daemon** sidebar entry
+   ("Show in sidebar" on the Info tab) is optional since 1.3.2.
 
 ## Options
 
@@ -24,6 +28,7 @@ HTTP/SSE API plus its own management pages.
 | `serial_port` | *(empty)* | The RS485 device, from a dropdown of what is currently attached. Internal (non-USB) ports appear too. To change it: reselect → **Save** → **Restart** (the device is read at startup). |
 | `allow_external` | `false` | Allow connections from other machines on your network. Off means loopback plus the Supervisor's bridge only. **`/api/v1` is unauthenticated** — tick this only on a trusted network, and only deliberately. |
 | `api_bind_ip` | *(empty)* | Advanced; leave empty. Serves the REST API on one specific address instead, and wins over `allow_external`. Any value other than `0.0.0.0` replaces the Supervisor's bridge listener, so the sidebar panel and the health watchdog stop working — the log warns when that happens. |
+| `require_token` | `false` | Require the API token on the scanner API (`/api/v1`) too, not only on users and automations — as an ekey ESP32 device does. Recommended together with `allow_external`. The integration receives the token automatically; the pages through Home Assistant and the health watchdog keep working. Restart the add-on after changing it. |
 | `log_request_bodies` | `false` | Write request bodies to the log. They carry user names and fingerprint template hex, and add-on logs are copied into support bundles. Turn it on while debugging, then off. |
 
 ## What the sidebar page can do here
@@ -88,22 +93,25 @@ literally. For a JSON payload, quote the text tokens and leave the two numbers b
 
 ## The Home Assistant integration
 
-Install **[ekey module App](https://github.com/agrisvi/ekey_module_app)** through HACS,
-then **Settings → Devices & Services → Add Integration** and search for
-**ekey module App**.
+Install **[ekey module App](https://github.com/agrisvi/ekey_module_app)** through HACS
+(1.3.2 or later) and restart Home Assistant. With this add-on running, **Settings →
+Devices & Services** then shows **"ekey add-on found"** — press **Submit**. There is no
+token to paste: the add-on hands its API token over through the Supervisor (the log
+says `API token handed to Home Assistant (add-on discovery)`).
 
-It asks first how Home Assistant reaches the backend. Choose
-**Local — ekey-ha-daemon on this host (HTTP)**, and take the defaults: host
-`127.0.0.1`, port `8080`. Those are correct because this add-on runs with host
-networking on purpose. Then paste the API token from step 2.
+An entry you made earlier by hand — **Local — ekey-ha-daemon on this host (HTTP)**,
+host `127.0.0.1` or `localhost`, port `8080` — is recognised as this add-on and takes
+the token over; no second entry is created. Those defaults are correct because this
+add-on runs with host networking on purpose.
 
-Without the token the integration can read the scanner but cannot manage users — the
-panel needs it.
+If you later use **Generate new API token** on the System tab, the old one stops working
+immediately — and the add-on announces the new one within about ten seconds, so the
+integration reloads with it by itself. Only an older integration (before 1.3.2) still
+raises the *"ekey token no longer accepted"* notice, where entering the new token is the
+whole fix.
 
-If you later use **Generate new API token** on the System tab, the old one stops
-working immediately and the integration raises a *"ekey token no longer accepted"*
-notice. Entering the new token there is the whole fix; the integration does not need
-to be removed and re-added.
+The integration's **ekey** panel shows this add-on's pages too: choose its scanner in
+**Scanner or storage**.
 
 ## Storage
 
@@ -137,7 +145,8 @@ that will not restart.
 | *Failed to obtain persistent key* | Something else is talking to the same scanner. One daemon per scanner — stop the other one. |
 | Sidebar page loads but the event log never updates | Only possible on a modified config: `ingress_stream` must stay `true`, or the Supervisor buffers the SSE stream. |
 | `unauthorized` while installing | The container image's package visibility. It must be public; the Supervisor holds no registry credentials. |
-| Integration connects but shows no users | No API token given. Re-add the integration entry with the token from the log. |
+| Integration connects but shows no users | No API token reached it. Check the log for `API token handed to Home Assistant`; with an integration older than 1.3.2, enter the token from the log under the entry's **Configure → API token**. |
+| Log says *Could not announce the API token to Home Assistant* | The Supervisor refused the discovery message. The add-on retries every minute; until then, enter the token by hand as above. |
 | An SPI RS485 HAT does not appear in the `serial_port` dropdown | The host is missing its device-tree overlay — see below. |
 
 ### Using an SPI RS485 HAT instead of a USB converter
@@ -180,6 +189,7 @@ linked dynamically; the two that are not are marked as exceptions in the table.
 | [Mbed TLS](https://github.com/Mbed-TLS/mbedtls) | **Apache-2.0** | ECDH and AES-GCM on the scanner link, and the self-signed HTTPS certificate. Upstream offers Apache-2.0 **or** GPL-2.0-or-later; this distribution takes Apache-2.0, so no GPL obligation attaches on its account. |
 | [libcurl](https://curl.se/) | curl licence (MIT/X style) | The `webhook` action type. |
 | [Eclipse Mosquitto](https://github.com/eclipse-mosquitto/mosquitto) | **BSD-3-Clause** | The `mqtt` action type. Upstream offers EPL-2.0 **or** BSD-3-Clause; this distribution takes BSD-3-Clause, so the EPL's source-availability provisions do not apply. |
+| [zlib](https://zlib.net/) | Zlib | Compresses the built-in web pages once at startup. |
 | Home Assistant Debian base image | assorted | Debian Bookworm userland; each package carries its own copyright file. |
 
 Where the licence choice is shown in bold, that choice is part of the notice — a reader

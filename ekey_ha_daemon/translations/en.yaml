@@ -37,6 +37,14 @@ configuration:
       so setting a LAN address here makes the "Open Web UI" button fail. Typing the
       host's own DHCP address is also fragile: when the lease moves, the daemon cannot
       bind it and the add-on restart-loops.
+  require_token:
+    name: Require the API token everywhere
+    description: >-
+      Ask for the API token on the scanner API (/api/v1) too, not only on users and
+      automations — the way an ekey ESP32 device does. Recommended together with
+      "Allow connections from other machines". The Home Assistant integration
+      receives the token automatically; the ekey panel and the health watchdog keep
+      working. Takes effect after a restart of the add-on.
   log_request_bodies:
     name: Log request bodies
     description: >-

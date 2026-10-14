@@ -3,6 +3,21 @@
 The Supervisor shows this file when an update is available, so each entry answers
 one question: should I install this, and does anything change for me afterwards?
 
+## 1.3.3
+
+- **Copying fingerprints between scanners and listing them is faster.** Reading a
+  fingerprint template from the scanner took about 4 seconds, because each of its parts
+  was fetched half a second apart; the parts now follow each other as fast as the scanner
+  delivers them. The fingerprint list (and the scanner's own log) benefit the same way.
+  When nothing is happening, the scanner is polled exactly as before.
+- **A clearer message when the access-log page cannot reach the backend.** It used to say
+  "The app is in configuration mode." for any failed request, which was misleading; it now
+  says the backend is not answering at this address and what usually causes that.
+- **Editing a user is easier with several fingerprints.** The user window is wider and shows
+  each fingerprint on one line (finger number and Delete side by side), so all of them fit
+  without scrolling. It no longer moves a fingerprint to another user: delete it and enrol
+  the finger again for that user. The users list also shows each finger on a single line.
+
 ## 1.3.2
 
 - **Home Assistant picks up the API token by itself.** The add-on now hands its token to

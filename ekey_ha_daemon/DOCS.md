@@ -144,6 +144,7 @@ that will not restart.
 | Add-on stops immediately, log says *No serial device selected* | `serial_port` is unset. Configuration tab. |
 | *Failed to obtain persistent key* | Something else is talking to the same scanner. One daemon per scanner — stop the other one. |
 | Sidebar page loads but the event log never updates | Only possible on a modified config: `ingress_stream` must stay `true`, or the Supervisor buffers the SSE stream. |
+| The access-log page says *The device is not answering at this address* | The page got no answer from the add-on. Check that the add-on is running and its log for a restart; when opening the page outside the sidebar by host name, a VPN that sends every name to its own DNS can make the name unresolvable — try the IP address. |
 | `unauthorized` while installing | The container image's package visibility. It must be public; the Supervisor holds no registry credentials. |
 | Integration connects but shows no users | No API token reached it. Check the log for `API token handed to Home Assistant`; with an integration older than 1.3.2, enter the token from the log under the entry's **Configure → API token**. |
 | Log says *Could not announce the API token to Home Assistant* | The Supervisor refused the discovery message. The add-on retries every minute; until then, enter the token by hand as above. |
